@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AxiosInstance } from 'axios';
 import { cities } from '../../mocks/cities';
 import { City, Offer } from '../../types/offer';
+import { toggleFavorite } from './favorites-slice';
 
 interface OffersState {
   offers: Offer[];
@@ -15,7 +16,7 @@ interface OffersState {
 
 const initialState: OffersState = {
   offers: [],
-  cities: cities ,
+  cities: cities,
   selectedCity: cities[0],
   selectedSort: 'popular',
   activeOfferId: null,
@@ -46,14 +47,6 @@ const offersSlice = createSlice({
     setActiveOfferId: (state, action: PayloadAction<string | null>) => {
       state.activeOfferId = action.payload;
     },
-    toggleFavorite: (state, action: PayloadAction<string>) => {
-      const foundOffer = state.offers.find(
-        (item) => item.id === action.payload,
-      );
-      if (foundOffer) {
-        foundOffer.isFavorite = !foundOffer.isFavorite;
-      }
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -69,6 +62,13 @@ const offersSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to load offers';
         state.offers = [];
+      })
+      .addCase(toggleFavorite.fulfilled, (state, action) => {
+        const updatedOffer = action.payload;
+        const index = state.offers.findIndex((offer) => offer.id === updatedOffer.id);
+        if (index >= 0) {
+          state.offers[index].isFavorite = updatedOffer.isFavorite;
+        }
       });
   },
 });
@@ -77,7 +77,6 @@ export const {
   setSelectedCity,
   setSelectedSort,
   setActiveOfferId,
-  toggleFavorite,
 } = offersSlice.actions;
 
 export default offersSlice.reducer;

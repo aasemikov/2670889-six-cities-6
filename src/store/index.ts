@@ -1,5 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { createAPI } from '../api/api';
+import authSlice from './slices/auth-slice';
+import favoritesSlice from './slices/favorites-slice';
 import nearbySlice from './slices/nearby-slice';
 import detailSlice from './slices/offer-slice';
 import offersSlice from './slices/offers-slice';
@@ -11,6 +13,8 @@ export const store = configureStore({
     offers: offersSlice,
     nearby: nearbySlice,
     detail: detailSlice,
+    auth: authSlice,
+    favorites: favoritesSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

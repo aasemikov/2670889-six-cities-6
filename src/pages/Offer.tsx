@@ -9,9 +9,9 @@ import { OfferInfo } from '../components/OfferPageItems/OfferInfo';
 import { ReviewsSection } from '../components/OfferPageItems/ReviewsSection';
 import Spinner from '../components/Spinner';
 import { useAppDispatch, useAppSelector } from '../store/hooks/redux';
+import { toggleFavorite } from '../store/slices/favorites-slice';
 import { fetchNearbyOffers } from '../store/slices/nearby-slice';
 import { fetchOfferDetails, toggleFavoriteOffer } from '../store/slices/offer-slice';
-import { toggleFavorite } from '../store/slices/offers-slice';
 import { isDetailedOffer } from '../types/offer';
 
 type OfferPageProps = {
@@ -35,6 +35,9 @@ export const OfferPage: React.FC<OfferPageProps> = ({ onFavoriteToggle }) => {
     error: nearbyError
   } = useAppSelector((state) => state.nearby);
 
+  const { authorizationStatus } = useAppSelector((state) => state.auth);
+  const isAuthorized = authorizationStatus === 'AUTH';
+
   useEffect(() => {
     if (!id) {
       navigate('/404', { replace: true });
@@ -50,11 +53,22 @@ export const OfferPage: React.FC<OfferPageProps> = ({ onFavoriteToggle }) => {
       return;
     }
 
+    if (!isAuthorized) {
+      navigate('/login');
+      return;
+    }
+
     const newIsFavorite = !currentOffer.isFavorite;
-    dispatch(toggleFavorite(currentOffer.id));
+
+    dispatch(toggleFavorite({
+      offerId: currentOffer.id,
+      status: newIsFavorite
+    }));
+
     dispatch(toggleFavoriteOffer(currentOffer.id));
+
     onFavoriteToggle?.(currentOffer.id, newIsFavorite);
-  }, [currentOffer, dispatch, onFavoriteToggle]);
+  }, [currentOffer, dispatch, isAuthorized, navigate, onFavoriteToggle]);
 
   const loading = offerLoading || nearbyLoading;
   const error = offerError || nearbyError;
@@ -102,7 +116,6 @@ export const OfferPage: React.FC<OfferPageProps> = ({ onFavoriteToggle }) => {
   }
 
   const detailedOffer = currentOffer;
-
   const currentNearbyOffers = nearbyOffers[id!] || [];
 
   const {

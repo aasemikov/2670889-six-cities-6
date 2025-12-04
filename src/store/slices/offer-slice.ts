@@ -1,11 +1,12 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AxiosInstance } from 'axios';
 import { Offer } from '../../types/offer';
+import { toggleFavorite } from './favorites-slice';
 
 interface OfferDetailsState {
-    currentOffer: Offer | null;
-    loading: boolean;
-    error: string | null;
+  currentOffer: Offer | null;
+  loading: boolean;
+  error: string | null;
 }
 
 const initialState: OfferDetailsState = {
@@ -15,9 +16,9 @@ const initialState: OfferDetailsState = {
 };
 
 export const fetchOfferDetails = createAsyncThunk<
-    Offer,
-    string,
-    { extra: AxiosInstance }
+  Offer,
+  string,
+  { extra: AxiosInstance }
 >('offerDetails/fetchOfferDetails', async (offerId, { extra: api }) => {
   const { data } = await api.get<Offer>(`/offers/${offerId}`);
   return data;
@@ -50,6 +51,11 @@ const offerDetailsSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to load offer details';
         state.currentOffer = null;
+      })
+      .addCase(toggleFavorite.fulfilled, (state, action) => {
+        if (state.currentOffer?.id === action.payload.id) {
+          state.currentOffer.isFavorite = action.payload.isFavorite;
+        }
       });
   },
 });
