@@ -9,6 +9,7 @@ import { OfferInfo } from '../components/OfferPageItems/OfferInfo';
 import { ReviewsSection } from '../components/OfferPageItems/ReviewsSection';
 import Spinner from '../components/Spinner';
 import { useAppDispatch, useAppSelector } from '../store/hooks/redux';
+import { fetchComments } from '../store/slices/comment-slice';
 import { toggleFavorite } from '../store/slices/favorites-slice';
 import { fetchNearbyOffers } from '../store/slices/nearby-slice';
 import { fetchOfferDetails, toggleFavoriteOffer } from '../store/slices/offer-slice';
@@ -46,7 +47,14 @@ export const OfferPage: React.FC<OfferPageProps> = ({ onFavoriteToggle }) => {
 
     dispatch(fetchOfferDetails(id));
     dispatch(fetchNearbyOffers(id));
+    dispatch(fetchComments(id));
   }, [id, dispatch, navigate]);
+
+  useEffect(() => {
+    if (offerError === 'Offer not found' || (offerError && offerError.includes('404'))) {
+      navigate('/404', { replace: true });
+    }
+  }, [offerError, navigate]);
 
   const handleFavoriteClick = useCallback(() => {
     if (!currentOffer) {
@@ -84,22 +92,7 @@ export const OfferPage: React.FC<OfferPageProps> = ({ onFavoriteToggle }) => {
   }
 
   if (error || !currentOffer) {
-    return (
-      <main className="page__main page__main--offer">
-        <div className="container">
-          <div className="error-message">
-            <h2>Не удалось загрузить предложение</h2>
-            <p>{error || 'Предложение не найдено'}</p>
-            <button
-              onClick={() => navigate('/')}
-              className="error-message__retry"
-            >
-              Вернуться на главную
-            </button>
-          </div>
-        </div>
-      </main>
-    );
+    return null;
   }
 
   if (!isDetailedOffer(currentOffer)) {
@@ -167,7 +160,7 @@ export const OfferPage: React.FC<OfferPageProps> = ({ onFavoriteToggle }) => {
                 description={description}
               />
             )}
-            <ReviewsSection reviews={[]} />
+            <ReviewsSection offerId={id!} />
           </div>
         </div>
       </section>
