@@ -10,7 +10,7 @@ export const ReviewForm: React.FC = () => {
 
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
-  const [hoverRating, setHoverRating] = useState(0); // Добавляем состояние для ховера
+  const [hoverRating, setHoverRating] = useState(0);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -24,7 +24,7 @@ export const ReviewForm: React.FC = () => {
 
       setRating(0);
       setReviewText('');
-      setHoverRating(0); // Сбрасываем ховер после отправки
+      setHoverRating(0);
     }
   };
 
@@ -36,9 +36,7 @@ export const ReviewForm: React.FC = () => {
     setReviewText(text);
   };
 
-  // Функция для определения, должна ли звезда быть подсвечена
   const isStarActive = (starValue: number) => {
-    // Используем hoverRating при наведении, иначе текущий рейтинг
     const currentRating = hoverRating || rating;
     return starValue <= currentRating;
   };
@@ -62,8 +60,8 @@ export const ReviewForm: React.FC = () => {
         {[5, 4, 3, 2, 1].map((star) => (
           <div
             key={star}
-            onMouseEnter={() => setHoverRating(star)} // При наведении устанавливаем ховер
-            onMouseLeave={() => setHoverRating(0)} // При уходе сбрасываем ховер
+            onMouseEnter={() => setHoverRating(star)}
+            onMouseLeave={() => setHoverRating(0)}
           >
             <input
               className="form__rating-input visually-hidden"

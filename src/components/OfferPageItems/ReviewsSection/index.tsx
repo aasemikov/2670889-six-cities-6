@@ -1,4 +1,3 @@
-// components/OfferPageItems/ReviewsSection.tsx
 import { useAppSelector } from '../../../store/hooks/redux';
 import { ReviewForm } from '../ReviewsForm';
 import { ReviewsList } from '../ReviewsList';
