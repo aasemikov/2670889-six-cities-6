@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { ArticleList } from '../components/ArticleList';
+import { MainEmpty } from '../components/MainEmpty';
 import Map from '../components/Map';
 import { Sorting } from '../components/Sorting';
 import Spinner from '../components/Spinner';
@@ -101,60 +102,37 @@ const Main: React.FC = () => {
     );
   }
 
-  if (filteredOffers.length === 0) {
-    return (
-      <main className="page__main page__main--index">
-        <div className="cities">
-          <div className="cities__places-container cities__places-container--empty container">
-            <section className="cities__no-places">
-              <div className="cities__status-wrapper">
-                <b className="cities__status">No places to stay available</b>
-                <p className="cities__status-description">
-                  We could not find any property available at the moment in{' '}
-                  {selectedCity.name}
-                </p>
-              </div>
-            </section>
-            <div className="cities__right-section">
-              <Map
-                city={selectedCity.location}
-                offers={[]}
-                activeOfferId={null}
-              />
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className="page__main page__main--index">
       <h1 className="visually-hidden">Cities</h1>
       <Tabs cities={cities} onCityChange={handleCityChange} />
       <div className="cities">
-        <div className="cities__places-container container">
-          <section className="cities__places places">
-            <h2 className="visually-hidden">Places</h2>
-            <b className="places__found">
-              {filteredOffers.length}{' '}
-              {filteredOffers.length === 1 ? 'place' : 'places'} to stay in{' '}
-              {selectedCity.name}
-            </b>
-            <Sorting
-              onSortChange={handleSortChange}
-              defaultOption={selectedSort}
-            />
-            <ArticleList offers={sortedOffers} onCardHover={handleCardHover} />
-          </section>
-          <div className="cities__right-section">
-            <Map
-              city={selectedCity.location}
-              offers={filteredOffers}
-              activeOfferId={activeOfferId}
-            />
+        {filteredOffers.length === 0 ? (
+          <MainEmpty />
+        ) : (
+          <div className="cities__places-container container">
+            <section className="cities__places places">
+              <h2 className="visually-hidden">Places</h2>
+              <b className="places__found">
+                {filteredOffers.length}{' '}
+                {filteredOffers.length === 1 ? 'place' : 'places'} to stay in{' '}
+                {selectedCity.name}
+              </b>
+              <Sorting
+                onSortChange={handleSortChange}
+                defaultOption={selectedSort}
+              />
+              <ArticleList offers={sortedOffers} onCardHover={handleCardHover} />
+            </section>
+            <div className="cities__right-section">
+              <Map
+                city={selectedCity.location}
+                offers={filteredOffers}
+                activeOfferId={activeOfferId}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </main>
   );
