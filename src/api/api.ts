@@ -1,15 +1,40 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
-export const createAPI = () => {
+const API_CONFIG = {
+  BASE_URL: 'https://14.design.htmlacademy.pro/six-cities',
+  TIMEOUT: 5000,
+  TOKEN_KEY: 'six-cities-token',
+  TOKEN_HEADER: 'X-Token'
+} as const;
+
+const getToken = (): string | null => {
+  try {
+    return localStorage.getItem(API_CONFIG.TOKEN_KEY);
+  } catch (error) {
+    return null;
+  }
+};
+
+const removeToken = (): void => {
+  localStorage.removeItem(API_CONFIG.TOKEN_KEY);
+};
+
+let apiInstance: AxiosInstance | null = null;
+
+export const createAPI = (): AxiosInstance => {
+  if (apiInstance) {
+    return apiInstance;
+  }
+
   const api = axios.create({
-    baseURL: 'https://14.design.htmlacademy.pro/six-cities',
-    timeout: 5000,
+    baseURL: API_CONFIG.BASE_URL,
+    timeout: API_CONFIG.TIMEOUT,
   });
 
-  api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('six-cities-token');
+  api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+    const token = getToken();
     if (token && config.headers) {
-      config.headers['X-Token'] = token;
+      config.headers[API_CONFIG.TOKEN_HEADER] = token;
     }
     return config;
   });
@@ -17,12 +42,15 @@ export const createAPI = () => {
   api.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
-      if (error.response?.status === 401) {
-        localStorage.removeItem('six-cities-token');
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          removeToken();
+        }
       }
       return Promise.reject(error);
     }
   );
 
+  apiInstance = api;
   return api;
 };
