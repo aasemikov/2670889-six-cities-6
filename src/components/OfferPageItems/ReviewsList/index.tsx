@@ -1,4 +1,3 @@
-// components/OfferPageItems/ReviewsList.tsx
 import { Review } from '../../../types/review';
 
 const getRatingWidth = (ratingValue: number) => `${(ratingValue / 5) * 100}%`;
