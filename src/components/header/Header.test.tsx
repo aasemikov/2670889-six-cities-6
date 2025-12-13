@@ -17,7 +17,7 @@ vi.mock('../container', () => ({
 vi.mock('../navbar', () => ({
   NavBar: ({ isAuthorized }: { isAuthorized: boolean }) => (
     <nav data-testid="navbar" data-authorized={isAuthorized}>
-            NavBar
+      NavBar
     </nav>
   ),
 }));
@@ -89,12 +89,13 @@ describe('Header', () => {
     const mockUseAppSelector = vi.mocked(useAppSelector);
     mockUseAppSelector.mockReturnValue({ authorizationStatus: 'NO_AUTH' });
 
-    render(
+    const { container } = render(
       <MemoryRouter>
         <Header />
       </MemoryRouter>
     );
 
-    expect(screen.getByTestId('container')).toBeInTheDocument();
+    expect(container.querySelector('.container')).toBeInTheDocument();
+    expect(container.innerHTML).toContain('class="container"');
   });
 });
