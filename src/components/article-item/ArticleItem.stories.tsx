@@ -71,7 +71,6 @@ const meta = {
     )
   ],
   args: {
-    onCardHover: (id) => console.log('Card hover:', id),
     className: '',
     'data-testid': 'offer-card-story'
   },
