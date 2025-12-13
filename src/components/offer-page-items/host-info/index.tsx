@@ -1,4 +1,4 @@
-type HostInfoProps = {
+export type HostInfoProps = {
   host: {
     name: string;
     avatar: string;

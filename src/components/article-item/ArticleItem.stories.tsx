@@ -1,6 +1,26 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ArticleItem } from '.';
 import { Offer } from '../../types/offer';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import { MemoryRouter } from 'react-router-dom';
+
+const MockStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const mockStore = configureStore({
+    reducer: {
+      auth: () => ({ authorizationStatus: 'AUTH' }),
+      favorites: () => ({})
+    }
+  });
+
+  return (
+    <MemoryRouter>
+      <Provider store={mockStore}>
+        {children}
+      </Provider>
+    </MemoryRouter>
+  );
+};
 
 const mockOffer: Offer = {
   id: '1',
@@ -41,18 +61,38 @@ const mockOffer: Offer = {
 const meta = {
   title: 'Components/ArticleItem',
   component: ArticleItem,
+  decorators: [
+    (Story) => (
+      <MockStoreProvider>
+        <div style={{ maxWidth: '260px', fontFamily: 'sans-serif' }}>
+          <Story />
+        </div>
+      </MockStoreProvider>
+    )
+  ],
   args: {
-    onCardHover: undefined,
+    onCardHover: (id) => console.log('Card hover:', id),
+    className: '',
+    'data-testid': 'offer-card-story'
   },
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: {
+        component: 'Карточка предложения для аренды недвижимости с поддержкой избранного'
+      }
+    }
+  }
 } satisfies Meta<typeof ArticleItem>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const PremiumApartment: Story = {
+export const Default: Story = {
   args: {
-    offer: mockOffer,
+    offer: mockOffer
   },
+  name: 'Премиум апартаменты'
 };
 
 export const StandardRoom: Story = {
@@ -62,8 +102,9 @@ export const StandardRoom: Story = {
       id: '2',
       isPremium: false,
       title: 'Nice, cozy, warm big bed apartment',
-      previewImage: 'https://hotel-spb.ru/assets/components/phpthumbof/cache/predstavitelskiy_3rooms2.788c4c20502cae038e66e118c369e7b7.jpg',
       type: 'room',
+      price: 80,
+      rating: 3.8,
       host: {
         name: 'Angelina',
         avatarUrl: 'https://hotel-spb.ru/assets/components/phpthumbof/cache/predstavitelskiy_3rooms2.788c4c20502cae038e66e118c369e7b7.jpg',
@@ -71,6 +112,7 @@ export const StandardRoom: Story = {
       }
     },
   },
+  name: 'Стандартная комната'
 };
 
 export const FavoriteHouse: Story = {
@@ -79,9 +121,11 @@ export const FavoriteHouse: Story = {
       ...mockOffer,
       id: '3',
       isFavorite: true,
+      isPremium: false,
       title: 'Wood and stone place',
-      previewImage: 'https://hotel-spb.ru/assets/components/phpthumbof/cache/predstavitelskiy_3rooms2.788c4c20502cae038e66e118c369e7b7.jpg',
       type: 'house',
+      price: 200,
+      rating: 4.9,
       goods: ['Wi-Fi', 'Heating', 'Kitchen', 'Garden', 'Parking'],
       host: {
         name: 'Maximilian',
@@ -90,4 +134,49 @@ export const FavoriteHouse: Story = {
       }
     },
   },
+  name: 'Дом в избранном'
+};
+
+export const WithCustomClassName: Story = {
+  args: {
+    offer: mockOffer,
+    className: 'custom-card-class',
+    onCardHover: undefined
+  },
+  name: 'С кастомным классом'
+};
+
+export const WithoutHoverHandler: Story = {
+  args: {
+    offer: mockOffer,
+    onCardHover: undefined
+  },
+  name: 'Без обработчика наведения'
+};
+
+export const UnauthorizedUser: Story = {
+  args: {
+    offer: mockOffer
+  },
+  decorators: [
+    (Story) => {
+      const mockStore = configureStore({
+        reducer: {
+          auth: () => ({ authorizationStatus: 'NO_AUTH' }),
+          favorites: () => ({})
+        }
+      });
+
+      return (
+        <MemoryRouter>
+          <Provider store={mockStore}>
+            <div style={{ maxWidth: '260px', fontFamily: 'sans-serif' }}>
+              <Story />
+            </div>
+          </Provider>
+        </MemoryRouter>
+      );
+    }
+  ],
+  name: 'Неавторизованный пользователь'
 };

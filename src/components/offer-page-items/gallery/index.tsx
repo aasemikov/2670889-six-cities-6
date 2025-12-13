@@ -1,4 +1,4 @@
-type GalleryProps = {
+export type GalleryProps = {
   images: string[];
 };
 
