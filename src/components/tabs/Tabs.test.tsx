@@ -2,7 +2,6 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Tabs } from '.';
 
-// Моки для городов
 const mockCities = [
   { name: 'Paris', location: { latitude: 48.85661, longitude: 2.351499, zoom: 13 } },
   { name: 'Cologne', location: { latitude: 50.938361, longitude: 6.959974, zoom: 13 } },

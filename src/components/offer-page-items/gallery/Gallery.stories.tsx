@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { GalleryProps, OfferGallery } from '.';
+import { OfferGallery } from '.';
 
 const meta: Meta<typeof OfferGallery> = {
   title: 'Components/OfferGallery',

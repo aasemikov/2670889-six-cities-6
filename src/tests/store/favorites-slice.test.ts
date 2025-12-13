@@ -99,7 +99,6 @@ describe('favorites slice', () => {
     previewImage: 'img4.jpg'
   };
 
-  // Для типизации можем использовать как Offer
   const mockOffers: Offer[] = [mockShortOffer, mockShortOffer2, mockDetailedOffer2];
   const mockDetailedOfferAsOffer: Offer = mockDetailedOffer;
 
@@ -124,7 +123,6 @@ describe('favorites slice', () => {
         favorites: [...mockOffers, mockDetailedOfferAsOffer]
       };
 
-      // Удаляем offer с id '2'
       const state = favoritesReducer(
         stateWithFavorites,
         updateFavoriteLocal({ offerId: '2', isFavorite: false })
@@ -144,7 +142,6 @@ describe('favorites slice', () => {
       );
 
       expect(state.favorites).toHaveLength(0);
-      // updateFavoriteLocal только удаляет, не добавляет
     });
   });
 
@@ -215,7 +212,6 @@ describe('favorites slice', () => {
       expect(state.favorites).toHaveLength(1);
       expect(state.favorites[0]).toEqual(updatedOffer);
       expect(state.favorites[0].isFavorite).toBe(true);
-      // Проверяем что это DetailedOffer
       expect('description' in state.favorites[0]).toBe(true);
       expect('goods' in state.favorites[0]).toBe(true);
     });
