@@ -24,8 +24,6 @@ describe('MainEmpty', () => {
     });
 
     it('отображает секцию с сообщением', () => {
-        const { container } = render(<MainEmpty />);
-
         const statusWrapper = screen.getByText('No places to stay available').closest('div');
         expect(statusWrapper).toHaveClass('cities__status-wrapper', 'tabs__content');
 
