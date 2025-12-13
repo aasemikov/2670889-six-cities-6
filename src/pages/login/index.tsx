@@ -1,5 +1,5 @@
 import React, { FormEvent, useEffect, useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { cities } from '../../mocks/cities';
 import { useAppDispatch, useAppSelector } from '../../store/hooks/redux';
 import { clearError, login } from '../../store/slices/auth-slice';
