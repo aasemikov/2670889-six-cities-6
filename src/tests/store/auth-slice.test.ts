@@ -1,127 +1,158 @@
-import authReducer, { checkAuth, clearError, login, logout, setAuthStatus } from '../../store/slices/auth-slice';
-import { AuthInfo } from '../../types/auth';
+import { beforeEach, describe, expect, it } from 'vitest';
+import authReducer, {
+    AuthState,
+    checkAuth,
+    clearError,
+    login,
+    logout,
+    setAuthStatus
+} from '../../store/slices/auth-slice';
+import { AuthInfo, AuthStatus } from '../../types/auth';
 
-const mockUser: AuthInfo = {
-  name: 'John Doe',
-  email: 'john@example.com',
-  avatarUrl: 'avatar.jpg',
-  token: 'token123',
-  isPro: false
-};
+describe('auth slice', () => {
+    const initialState: AuthState = {
+        authorizationStatus: 'UNKNOWN' as AuthStatus,
+        user: null,
+        loading: false,
+        error: null
+    };
 
-const mockUserWithoutToken = {
-  name: 'John Doe',
-  email: 'john@example.com',
-  avatarUrl: 'avatar.jpg',
-  isPro: false
-};
+    const mockAuthInfo: AuthInfo = {
+        token: 'test-token',
+        email: 'test@example.com',
+        name: 'Test User',
+        avatarUrl: 'avatar.jpg',
+        isPro: false
+    };
 
-describe('Auth Slice', () => {
-  const initialState = {
-    authorizationStatus: 'UNKNOWN' as const,
-    user: null,
-    loading: false,
-    error: null
-  };
+    const mockUserData = {
+        email: 'test@example.com',
+        name: 'Test User',
+        avatarUrl: 'avatar.jpg',
+        isPro: false
+    };
 
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
-  describe('reducers', () => {
-    it('should handle setAuthStatus', () => {
-      const action = setAuthStatus('AUTH');
-      const state = authReducer(initialState, action);
-      expect(state.authorizationStatus).toBe('AUTH');
+    beforeEach(() => {
+        localStorage.clear();
     });
 
-    it('should handle clearError', () => {
-      const stateWithError = { ...initialState, error: 'Some error' };
-      const state = authReducer(stateWithError, clearError());
-      expect(state.error).toBeNull();
-    });
-  });
+    describe('actions', () => {
+        it('должен устанавливать статус авторизации', () => {
+            const action = setAuthStatus('AUTH');
+            const state = authReducer(initialState, action);
 
-  describe('checkAuth thunk', () => {
-    it('should set loading to true on pending', () => {
-      const action = { type: checkAuth.pending.type };
-      const state = authReducer(initialState, action);
-      expect(state.loading).toBe(true);
-      expect(state.error).toBeNull();
-    });
+            expect(state.authorizationStatus).toBe('AUTH');
+        });
 
-    it('should handle fulfilled checkAuth', () => {
-      const action = {
-        type: checkAuth.fulfilled.type,
-        payload: mockUser
-      };
-      const state = authReducer(initialState, action);
+        it('должен очищать ошибку', () => {
+            const stateWithError: AuthState = {
+                ...initialState,
+                error: 'Some error'
+            };
 
-      expect(state.loading).toBe(false);
-      expect(state.authorizationStatus).toBe('AUTH');
-      expect(state.user).toEqual(mockUserWithoutToken);
-      expect(localStorage.getItem('six-cities-token')).toBe('token123');
+            const state = authReducer(stateWithError, clearError());
+
+            expect(state.error).toBeNull();
+        });
     });
 
-    it('should handle rejected checkAuth', () => {
-      const action = { type: checkAuth.rejected.type };
-      const state = authReducer(initialState, action);
+    describe('async thunks', () => {
+        describe('checkAuth', () => {
+            it('должен обрабатывать pending состояние', () => {
+                const action = checkAuth.pending('', undefined);
+                const state = authReducer(initialState, action);
 
-      expect(state.loading).toBe(false);
-      expect(state.authorizationStatus).toBe('NO_AUTH');
-      expect(state.user).toBeNull();
-      expect(localStorage.getItem('six-cities-token')).toBeNull();
+                expect(state.loading).toBe(true);
+                expect(state.error).toBeNull();
+            });
+
+            it('должен обрабатывать fulfilled состояние', () => {
+                const action = checkAuth.fulfilled(mockAuthInfo, '', undefined);
+                const state = authReducer(initialState, action);
+
+                expect(state.loading).toBe(false);
+                expect(state.authorizationStatus).toBe('AUTH');
+                expect(state.user).toEqual(mockUserData);
+                expect(localStorage.getItem('six-cities-token')).toBe('test-token');
+            });
+
+            it('должен обрабатывать rejected состояние', () => {
+                const action = checkAuth.rejected(new Error('Failed'), '', undefined);
+                const state = authReducer(initialState, action);
+
+                expect(state.loading).toBe(false);
+                expect(state.authorizationStatus).toBe('NO_AUTH');
+                expect(state.user).toBeNull();
+                expect(localStorage.getItem('six-cities-token')).toBeNull();
+            });
+        });
+
+        describe('login', () => {
+            const loginData = { email: 'test@example.com', password: 'password123' };
+
+            it('должен обрабатывать pending состояние', () => {
+                const action = login.pending('', loginData);
+                const state = authReducer(initialState, action);
+
+                expect(state.loading).toBe(true);
+                expect(state.error).toBeNull();
+            });
+
+            it('должен обрабатывать fulfilled состояние', () => {
+                const action = login.fulfilled(mockAuthInfo, '', loginData);
+                const state = authReducer(initialState, action);
+
+                expect(state.loading).toBe(false);
+                expect(state.authorizationStatus).toBe('AUTH');
+                expect(state.user).toEqual(mockUserData);
+                expect(localStorage.getItem('six-cities-token')).toBe('test-token');
+            });
+
+            it('должен обрабатывать rejected состояние с ошибкой', () => {
+                const error = new Error('Login failed');
+                const action = login.rejected(error, '', loginData);
+                const state = authReducer(initialState, action);
+
+                expect(state.loading).toBe(false);
+                expect(state.error).toBe('Login failed');
+                expect(state.authorizationStatus).toBe('UNKNOWN');
+                expect(state.user).toBeNull();
+            });
+
+            it('должен обрабатывать rejected состояние без сообщения об ошибке', () => {
+                const action = login.rejected(new Error(), '', loginData);
+                const state = authReducer(initialState, action);
+
+                expect(state.error).toBe('Failed to login');
+            });
+        });
+
+        describe('logout', () => {
+            it('должен обрабатывать fulfilled состояние', () => {
+                const stateWithAuth: AuthState = {
+                    authorizationStatus: 'AUTH',
+                    user: mockUserData,
+                    loading: false,
+                    error: null
+                };
+
+                localStorage.setItem('six-cities-token', 'test-token');
+
+                const action = logout.fulfilled(undefined, '', undefined);
+                const state = authReducer(stateWithAuth, action);
+
+                expect(state.authorizationStatus).toBe('NO_AUTH');
+                expect(state.user).toBeNull();
+                expect(localStorage.getItem('six-cities-token')).toBeNull();
+            });
+        });
     });
-  });
 
-  describe('login thunk', () => {
-    it('should set loading to true on pending', () => {
-      const action = { type: login.pending.type };
-      const state = authReducer(initialState, action);
-      expect(state.loading).toBe(true);
-      expect(state.error).toBeNull();
+    describe('initial state', () => {
+        it('должен возвращать initialState при пустом action', () => {
+            const state = authReducer(undefined, { type: '' });
+
+            expect(state).toEqual(initialState);
+        });
     });
-
-    it('should handle fulfilled login', () => {
-      const action = {
-        type: login.fulfilled.type,
-        payload: mockUser
-      };
-      const state = authReducer(initialState, action);
-
-      expect(state.loading).toBe(false);
-      expect(state.authorizationStatus).toBe('AUTH');
-      expect(state.user).toEqual(mockUserWithoutToken);
-      expect(localStorage.getItem('six-cities-token')).toBe('token123');
-    });
-
-    it('should handle rejected login', () => {
-      const action = {
-        type: login.rejected.type,
-        error: { message: 'Login failed' }
-      };
-      const state = authReducer(initialState, action);
-
-      expect(state.loading).toBe(false);
-      expect(state.error).toBe('Login failed');
-    });
-  });
-
-  describe('logout thunk', () => {
-    it('should handle fulfilled logout', () => {
-      localStorage.setItem('six-cities-token', 'token123');
-      const stateWithAuth = {
-        ...initialState,
-        authorizationStatus: 'AUTH' as const,
-        user: mockUserWithoutToken
-      };
-
-      const action = { type: logout.fulfilled.type };
-      const state = authReducer(stateWithAuth, action);
-
-      expect(state.authorizationStatus).toBe('NO_AUTH');
-      expect(state.user).toBeNull();
-      expect(localStorage.getItem('six-cities-token')).toBeNull();
-    });
-  });
 });

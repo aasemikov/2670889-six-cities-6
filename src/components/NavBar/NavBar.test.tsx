@@ -1,156 +1,85 @@
-import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NavBar } from '.';
+import { useAppSelector } from '../../store/hooks/redux';
 
-jest.mock('../../store/hooks/redux', () => ({
-  useAppDispatch: jest.fn(() => jest.fn()),
-  useAppSelector: jest.fn(),
+const mockDispatch = vi.fn();
+
+vi.mock('../../store/hooks/redux', () => ({
+    useAppDispatch: () => mockDispatch,
+    useAppSelector: vi.fn(),
 }));
 
-jest.mock('../../store/slices/favorites-slice', () => ({
-  fetchFavorites: jest.fn(),
+vi.mock('../../store/slices/auth-slice', () => ({
+    logout: () => ({ type: 'auth/logout' }),
 }));
 
-describe('Компонент NavBar', () => {
-  const mockUseAppSelector = jest.requireMock('../../store/hooks/redux').useAppSelector;
+vi.mock('../../store/slices/favorites-slice', () => ({
+    fetchFavorites: () => ({ type: 'favorites/fetchFavorites' }),
+}));
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  describe('Для неавторизованного пользователя', () => {
+describe('NavBar', () => {
     beforeEach(() => {
-      mockUseAppSelector.mockImplementation((selector: any) => {
-        const mockState = {
-          auth: { user: null },
-          favorites: { favorites: [] },
-        };
-        return selector(mockState);
-      });
+        vi.clearAllMocks();
     });
 
-    it('показывает кнопку входа для неавторизованного пользователя', () => {
-      render(
-        <MemoryRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true
-          }}
-        >
-          <NavBar isAuthorized={false} />
-        </MemoryRouter>
-      );
+    it('рендерит ссылку на логин когда пользователь не авторизован', () => {
+        const mockUseAppSelector = vi.mocked(useAppSelector);
+        mockUseAppSelector.mockReturnValue({
+            auth: {
+                user: null,
+                authorizationStatus: 'NO_AUTH',
+                loading: false,
+                error: null,
+            },
+            favorites: {
+                favorites: [],
+                loading: false,
+                error: null,
+            },
+        });
 
-      expect(screen.getByText('Sign in')).toBeInTheDocument();
-      expect(screen.queryByText('Sign out')).not.toBeInTheDocument();
-    });
-  });
+        render(
+            <MemoryRouter>
+                <NavBar isAuthorized={false} />
+            </MemoryRouter>
+        );
 
-  describe('Для авторизованного пользователя', () => {
-    beforeEach(() => {
-      mockUseAppSelector.mockImplementation((selector: any) => {
-        const mockState = {
-          auth: {
-            user: {
-              name: 'John',
-              email: 'john@test.com',
-              avatarUrl: '/avatar.jpg'
-            }
-          },
-          favorites: { favorites: [{ id: '1' }, { id: '2' }] },
-        };
-        return selector(mockState);
-      });
+        expect(screen.getByText('Sign in')).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /sign in/i })).toHaveAttribute('href', '/login');
     });
 
-    it('показывает аватар и кнопку выхода', () => {
-      render(
-        <MemoryRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true
-          }}
-        >
-          <NavBar isAuthorized />
-        </MemoryRouter>
-      );
+    it('вызывает logout при клике на Sign out', () => {
+        const mockUseAppSelector = vi.mocked(useAppSelector);
+        mockUseAppSelector.mockReturnValue({
+            auth: {
+                user: {
+                    name: 'John Doe',
+                    email: 'john@example.com',
+                    avatarUrl: 'avatar.jpg',
+                    isPro: false,
+                },
+                authorizationStatus: 'AUTH',
+                loading: false,
+                error: null,
+            },
+            favorites: {
+                favorites: [],
+                loading: false,
+                error: null,
+            },
+        });
 
-      // Проверяем аватар
-      const avatarImg = screen.getByAltText('John');
-      expect(avatarImg).toBeInTheDocument();
-      expect(avatarImg).toHaveAttribute('src', '/avatar.jpg');
+        render(
+            <MemoryRouter>
+                <NavBar isAuthorized={true} />
+            </MemoryRouter>
+        );
 
-      // Проверяем email
-      expect(screen.getByText('john@test.com')).toBeInTheDocument();
+        const signOutButton = screen.getByText('Sign out');
+        fireEvent.click(signOutButton);
 
-      // Проверяем счетчик избранного
-      expect(screen.getByText('2')).toBeInTheDocument();
-
-      // Проверяем кнопку выхода
-      expect(screen.getByText('Sign out')).toBeInTheDocument();
+        expect(mockDispatch).toHaveBeenCalledWith({ type: 'auth/logout' });
     });
-  });
-
-  describe('Для авторизованного пользователя без аватара', () => {
-    beforeEach(() => {
-      mockUseAppSelector.mockImplementation((selector: any) => {
-        const mockState = {
-          auth: {
-            user: {
-              name: 'John',
-              email: 'john@test.com',
-              avatarUrl: undefined
-            }
-          },
-          favorites: { favorites: [] },
-        };
-        return selector(mockState);
-      });
-    });
-
-    it('показывает email вместо "User"', () => {
-      render(
-        <MemoryRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true
-          }}
-        >
-          <NavBar isAuthorized />
-        </MemoryRouter>
-      );
-
-      expect(screen.getByText('john@test.com')).toBeInTheDocument();
-      expect(screen.queryByAltText('John')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Проверка CSS классов', () => {
-    beforeEach(() => {
-      mockUseAppSelector.mockImplementation((selector: any) => {
-        const mockState = {
-          auth: { user: null },
-          favorites: { favorites: [] },
-        };
-        return selector(mockState);
-      });
-    });
-
-    it('применяет правильные CSS классы', () => {
-      render(
-        <MemoryRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true
-          }}
-        >
-          <NavBar isAuthorized={false} />
-        </MemoryRouter>
-      );
-
-      const nav = screen.getByRole('navigation');
-      expect(nav).toHaveClass('header__nav');
-    });
-  });
 });

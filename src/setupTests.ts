@@ -1,5 +1,16 @@
 import '@testing-library/jest-dom';
 
+const originalWarn = console.warn;
+const allowedWarnings = [
+  'React Router Future Flag Warning',
+];
+console.warn = (...args) => {
+  if (allowedWarnings.some(warning => args[0]?.includes?.(warning))) {
+    return;
+  }
+  originalWarn(...args);
+};
+
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {

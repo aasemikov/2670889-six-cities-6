@@ -1,62 +1,100 @@
-import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it, vi } from 'vitest';
+import { Header } from '.';
+import { useAppSelector } from '../../store/hooks/redux';
 
-const MockHeader = ({ isAuthorized }: { isAuthorized: boolean }) => (
-  <header className="header" data-testid="header">
-    <div data-testid="container">
-      <div className="header__wrapper">
-        <div className="header__left">
-          <a className="header__logo-link" href="/">
-            <img
-              className="header__logo"
-              src="/img/logo.svg"
-              alt="6 cities logo"
-              width="81"
-              height="41"
-            />
-          </a>
-        </div>
-        <nav data-testid="navbar">
-          {isAuthorized ? 'Авторизованная навигация' : 'Неавторизованная навигация'}
+vi.mock('../../store/hooks/redux', () => ({
+    useAppSelector: vi.fn(),
+}));
+
+vi.mock('../container', () => ({
+    Container: ({ children }: { children: React.ReactNode }) => (
+        <div data-testid="container">{children}</div>
+    ),
+}));
+
+vi.mock('../navbar', () => ({
+    NavBar: ({ isAuthorized }: { isAuthorized: boolean }) => (
+        <nav data-testid="navbar" data-authorized={isAuthorized}>
+            NavBar
         </nav>
-      </div>
-    </div>
-  </header>
-);
+    ),
+}));
 
-describe('Компонент Header (упрощенный)', () => {
-  it('корректно отображает структуру', () => {
-    render(<MockHeader isAuthorized={false} />);
+describe('Header', () => {
+    it('рендерит логотип со ссылкой на главную', () => {
+        const mockUseAppSelector = vi.mocked(useAppSelector);
+        mockUseAppSelector.mockReturnValue({ authorizationStatus: 'NO_AUTH' });
 
-    expect(screen.getByTestId('header')).toBeInTheDocument();
-    expect(screen.getByAltText('6 cities logo')).toBeInTheDocument();
-    expect(screen.getByTestId('navbar')).toBeInTheDocument();
-  });
+        render(
+            <MemoryRouter>
+                <Header />
+            </MemoryRouter>
+        );
 
-  it('отображает правильное состояние навигации', () => {
-    const { rerender } = render(<MockHeader isAuthorized={false} />);
-    expect(screen.getByTestId('navbar')).toHaveTextContent('Неавторизованная навигация');
+        const logoLink = screen.getByRole('link', { name: /6 cities logo/i });
+        expect(logoLink).toBeInTheDocument();
+        expect(logoLink).toHaveAttribute('href', '/');
 
-    rerender(<MockHeader isAuthorized />);
-    expect(screen.getByTestId('navbar')).toHaveTextContent('Авторизованная навигация');
-  });
+        const logoImage = screen.getByAltText('6 cities logo');
+        expect(logoImage).toBeInTheDocument();
+        expect(logoImage).toHaveAttribute('width', '81');
+        expect(logoImage).toHaveAttribute('height', '41');
+    });
 
-  it('содержит логотип с правильными атрибутами', () => {
-    render(<MockHeader isAuthorized={false} />);
+    it('передает isAuthorized=false в NavBar когда пользователь не авторизован', () => {
+        const mockUseAppSelector = vi.mocked(useAppSelector);
+        mockUseAppSelector.mockReturnValue({ authorizationStatus: 'NO_AUTH' });
 
-    const logoImg = screen.getByAltText('6 cities logo');
-    expect(logoImg).toHaveAttribute('width', '81');
-    expect(logoImg).toHaveAttribute('height', '41');
-    expect(logoImg).toHaveAttribute('src', '/img/logo.svg');
-  });
+        render(
+            <MemoryRouter>
+                <Header />
+            </MemoryRouter>
+        );
 
-  it('имеет правильные CSS классы', () => {
-    const { container } = render(<MockHeader isAuthorized={false} />);
+        const navBar = screen.getByTestId('navbar');
+        expect(navBar).toHaveAttribute('data-authorized', 'false');
+    });
 
-    const header = container.querySelector('header');
-    expect(header).toHaveClass('header');
+    it('передает isAuthorized=true в NavBar когда пользователь авторизован', () => {
+        const mockUseAppSelector = vi.mocked(useAppSelector);
+        mockUseAppSelector.mockReturnValue({ authorizationStatus: 'AUTH' });
 
-    const logoLink = screen.getByRole('link');
-    expect(logoLink).toHaveClass('header__logo-link');
-  });
+        render(
+            <MemoryRouter>
+                <Header />
+            </MemoryRouter>
+        );
+
+        const navBar = screen.getByTestId('navbar');
+        expect(navBar).toHaveAttribute('data-authorized', 'true');
+    });
+
+    it('имеет правильные CSS классы', () => {
+        const mockUseAppSelector = vi.mocked(useAppSelector);
+        mockUseAppSelector.mockReturnValue({ authorizationStatus: 'NO_AUTH' });
+
+        const { container } = render(
+            <MemoryRouter>
+                <Header />
+            </MemoryRouter>
+        );
+
+        const headerElement = container.querySelector('header');
+        expect(headerElement).toHaveClass('header');
+    });
+
+    it('использует Container для обертки содержимого', () => {
+        const mockUseAppSelector = vi.mocked(useAppSelector);
+        mockUseAppSelector.mockReturnValue({ authorizationStatus: 'NO_AUTH' });
+
+        render(
+            <MemoryRouter>
+                <Header />
+            </MemoryRouter>
+        );
+
+        expect(screen.getByTestId('container')).toBeInTheDocument();
+    });
 });

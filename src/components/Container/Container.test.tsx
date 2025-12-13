@@ -1,42 +1,61 @@
-import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { Container } from '.';
 
-describe('Container Component', () => {
-  it('Правильный вывод', () => {
-    render(<Container>Test Content</Container>);
-    expect(screen.getByText('Test Content')).toBeInTheDocument();
-  });
+describe('Container', () => {
+    it('рендерит children', () => {
+        render(
+            <Container>
+                <span>Test content</span>
+            </Container>
+        );
 
-  it('Есть нужный класс', () => {
-    render(<Container>Test Content</Container>);
-    const container = screen.getByText('Test Content');
-    expect(container).toHaveClass('container');
-  });
+        expect(screen.getByText('Test content')).toBeInTheDocument();
+    });
 
-  it('Отображение с правильным children', () => {
-    const testContent = 'Hello, World!';
-    render(<Container>{testContent}</Container>);
-    expect(screen.getByText(testContent)).toBeInTheDocument();
-  });
+    it('имеет правильный CSS класс', () => {
+        const { container } = render(
+            <Container>
+                <div>Content</div>
+            </Container>
+        );
 
-  it('Рендер нескольких children', () => {
-    render(
-      <Container>
-        <div data-testid="child-1">Child 1</div>
-        <span data-testid="child-2">Child 2</span>
-        <button data-testid="child-3">Click me</button>
-      </Container>
-    );
-    expect(screen.getByTestId('child-1')).toBeInTheDocument();
-    expect(screen.getByTestId('child-2')).toBeInTheDocument();
-    expect(screen.getByTestId('child-3')).toBeInTheDocument();
-  });
+        const divElement = container.firstChild;
+        expect(divElement).toHaveClass('container');
+    });
 
-  it('Рендер с children = null', () => {
-    render(<Container>{null}</Container>);
-    const container = screen.getByText('', { selector: '.container' });
-    expect(container).toBeInTheDocument();
-    expect(container).toHaveClass('container');
-  });
+    it('рендерит несколько children', () => {
+        render(
+            <Container>
+                <h1>Title</h1>
+                <p>Paragraph</p>
+                <button>Click me</button>
+            </Container>
+        );
+
+        expect(screen.getByRole('heading', { name: 'Title' })).toBeInTheDocument();
+        expect(screen.getByText('Paragraph')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Click me' })).toBeInTheDocument();
+    });
+
+    it('рендерит пустой контейнер', () => {
+        const { container } = render(<Container>{null}</Container>);
+
+        const divElement = container.firstChild;
+        expect(divElement).toHaveClass('container');
+        expect(divElement).toBeEmptyDOMElement();
+    });
+
+    it('рендерит компоненты как children', () => {
+        const TestComponent = () => <div data-testid="test-component">Component</div>;
+
+        render(
+            <Container>
+                <TestComponent />
+            </Container>
+        );
+
+        expect(screen.getByTestId('test-component')).toBeInTheDocument();
+        expect(screen.getByText('Component')).toBeInTheDocument();
+    });
 });

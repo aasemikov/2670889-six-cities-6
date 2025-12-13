@@ -1,37 +1,90 @@
-import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { describe, expect, it, vi } from 'vitest';
 import { Layout } from '.';
 
-jest.mock('../Header', () => ({
-  Header: () => <header>Шапка сайта</header>,
+vi.mock('../header', () => ({
+    Header: () => <header data-testid="header">Header</header>,
 }));
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  Outlet: () => <div>Контент страницы</div>,
-}));
+describe('Layout', () => {
+    it('рендерит Header и Outlet', () => {
+        render(
+            <MemoryRouter>
+                <Layout />
+            </MemoryRouter>
+        );
 
-describe('Компонент Layout', () => {
-  it('отображает шапку и основной контент', () => {
-    render(
-      <MemoryRouter>
-        <Layout />
-      </MemoryRouter>
-    );
+        expect(screen.getByTestId('header')).toBeInTheDocument();
+    });
 
-    expect(screen.getByText('Шапка сайта')).toBeInTheDocument();
-    expect(screen.getByText('Контент страницы')).toBeInTheDocument();
-  });
+    it('рендерит дочерние компоненты через Outlet', () => {
+        const TestComponent = () => <div data-testid="test-content">Test Content</div>;
 
-  it('использует CSS класс "page" для контейнера', () => {
-    const { container } = render(
-      <MemoryRouter>
-        <Layout />
-      </MemoryRouter>
-    );
+        render(
+            <MemoryRouter>
+                <Routes>
+                    <Route path="/" element={<Layout />}>
+                        <Route index element={<TestComponent />} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>
+        );
 
-    const pageElement = container.querySelector('.page');
-    expect(pageElement).toBeInTheDocument();
-  });
+        expect(screen.getByTestId('header')).toBeInTheDocument();
+        expect(screen.getByTestId('test-content')).toBeInTheDocument();
+        expect(screen.getByText('Test Content')).toBeInTheDocument();
+    });
+
+    it('имеет правильный CSS класс', () => {
+        const { container } = render(
+            <MemoryRouter>
+                <Layout />
+            </MemoryRouter>
+        );
+
+        const layoutElement = container.firstChild;
+        expect(layoutElement).toHaveClass('page');
+    });
+
+    it('сохраняет структуру с Header выше контента', () => {
+        const TestComponent = () => <div>Main Content</div>;
+
+        const { container } = render(
+            <MemoryRouter>
+                <Routes>
+                    <Route path="/" element={<Layout />}>
+                        <Route index element={<TestComponent />} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>
+        );
+
+        const layoutElement = container.firstChild;
+        expect(layoutElement).toHaveClass('page');
+
+        expect(screen.getByTestId('header')).toBeInTheDocument();
+        expect(screen.getByText('Main Content')).toBeInTheDocument();
+    });
+
+    it('работает с разными дочерними маршрутами', () => {
+        const HomePage = () => <div data-testid="home">Home Page</div>;
+        const AboutPage = () => <div data-testid="about">About Page</div>;
+
+        render(
+            <MemoryRouter initialEntries={['/about']}>
+                <Routes>
+                    <Route path="/" element={<Layout />}>
+                        <Route index element={<HomePage />} />
+                        <Route path="about" element={<AboutPage />} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>
+        );
+
+        expect(screen.getByTestId('header')).toBeInTheDocument();
+        expect(screen.getByTestId('about')).toBeInTheDocument();
+        expect(screen.getByText('About Page')).toBeInTheDocument();
+        expect(screen.queryByTestId('home')).not.toBeInTheDocument();
+    });
 });

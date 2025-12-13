@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks/redux';
-import { Container } from '../Container';
-import { NavBar } from '../NavBar';
+import { Container } from '../container';
+import { NavBar } from '../navbar';
 
 export const Header: React.FC = () => {
   const { authorizationStatus } = useAppSelector((state) => state.auth);
