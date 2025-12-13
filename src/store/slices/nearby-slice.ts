@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { AxiosInstance } from 'axios';
 import { Offer } from '../../types/offer';
 
-interface NearbyState {
+export interface NearbyState {
     nearbyOffers: Record<string, Offer[]>;
     loading: boolean;
     error: string | null;

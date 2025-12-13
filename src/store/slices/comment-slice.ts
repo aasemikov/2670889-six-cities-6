@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AxiosInstance } from 'axios';
 import { Review } from '../../types/review';
 
-interface CommentsState {
+export interface CommentsState {
     comments: Record<string, Review[]>;
     loading: boolean;
     error: string | null;

@@ -3,7 +3,7 @@ import { AxiosInstance } from 'axios';
 import { Offer } from '../../types/offer';
 import { toggleFavorite } from './favorites-slice';
 
-interface OfferDetailsState {
+export interface OfferDetailsState {
   currentOffer: Offer | null;
   loading: boolean;
   error: string | null;
