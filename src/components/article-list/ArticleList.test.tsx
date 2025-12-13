@@ -77,7 +77,7 @@ describe('ArticleList', () => {
 
   it('передает onCardHover в каждый ArticleItem', () => {
     const mockOnCardHover = vi.fn();
-    
+
     render(<ArticleList offers={mockOffers} onCardHover={mockOnCardHover} />);
 
     expect(screen.getByTestId('article-item-1')).toBeInTheDocument();

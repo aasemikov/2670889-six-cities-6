@@ -5,43 +5,43 @@ import { useAppSelector } from '../../../store/hooks/redux';
 import { ReviewsSection } from '.';
 
 vi.mock('../../../store/hooks/redux', () => ({
-    useAppSelector: vi.fn(),
+  useAppSelector: vi.fn(),
 }));
 
 vi.mock('../reviews-form', () => ({
-    ReviewForm: () => <div data-testid="review-form">Review Form</div>,
+  ReviewForm: () => <div data-testid="review-form">Review Form</div>,
 }));
 
 vi.mock('../reviews-list', () => ({
-    ReviewsList: ({ reviews }: { reviews: any[] }) => (
-        <div data-testid="reviews-list">
-            {reviews.length} reviews
-        </div>
-    ),
+  ReviewsList: ({ reviews }: { reviews: any[] }) => (
+    <div data-testid="reviews-list">
+      {reviews.length} reviews
+    </div>
+  ),
 }));
 
 describe('ReviewsSection', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('не показывает ReviewForm когда пользователь не авторизован', () => {
+    const mockUseAppSelector = vi.mocked(useAppSelector);
+    mockUseAppSelector.mockReturnValue({
+      comments: {
+        loading: false,
+        error: null,
+        comments: {},
+      },
+      auth: { authorizationStatus: 'NO_AUTH' },
     });
 
-    it('не показывает ReviewForm когда пользователь не авторизован', () => {
-        const mockUseAppSelector = vi.mocked(useAppSelector);
-        mockUseAppSelector.mockReturnValue({
-            comments: {
-                loading: false,
-                error: null,
-                comments: {},
-            },
-            auth: { authorizationStatus: 'NO_AUTH' },
-        });
+    render(
+      <MemoryRouter>
+        <ReviewsSection offerId="123" />
+      </MemoryRouter>
+    );
 
-        render(
-            <MemoryRouter>
-                <ReviewsSection offerId="123" />
-            </MemoryRouter>
-        );
-
-        expect(screen.queryByTestId('review-form')).not.toBeInTheDocument();
-    });
+    expect(screen.queryByTestId('review-form')).not.toBeInTheDocument();
+  });
 });

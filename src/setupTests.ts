@@ -5,7 +5,7 @@ const allowedWarnings = [
   'React Router Future Flag Warning',
 ];
 console.warn = (...args) => {
-  if (allowedWarnings.some(warning => args[0]?.includes?.(warning))) {
+  if (allowedWarnings.some((warning) => args[0]?.includes?.(warning))) {
     return;
   }
   originalWarn(...args);
