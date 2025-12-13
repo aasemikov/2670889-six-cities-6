@@ -1,31 +1,16 @@
+import { describe, it, expect } from 'vitest';
 import commentsReducer, {
+  CommentsState,
+  fetchComments,
+  postComment,
   clearComments,
   clearCommentsByOfferId,
-  clearPostError,
-  fetchComments,
-  postComment
+  clearPostError
 } from '../../store/slices/comment-slice';
 import { Review } from '../../types/review';
 
-const mockReviews: Review[] = [
-  {
-    id: '1',
-    comment: 'Great place!',
-    rating: 5,
-    date: '2024-01-01',
-    user: { name: 'John', avatarUrl: 'avatar.jpg', isPro: false, email: 'user@mail.ru' }
-  },
-  {
-    id: '2',
-    comment: 'Not bad',
-    rating: 4,
-    date: '2024-01-02',
-    user: { name: 'Jane', avatarUrl: 'avatar2.jpg', isPro: true, email: 'user@mail.ru' }
-  }
-];
-
-describe('Comments Slice', () => {
-  const initialState = {
+describe('comments slice', () => {
+  const initialState: CommentsState = {
     comments: {},
     loading: false,
     error: null,
@@ -33,120 +18,226 @@ describe('Comments Slice', () => {
     postError: null
   };
 
-  describe('reducers', () => {
-    it('should handle clearComments', () => {
-      const stateWithComments = {
+  const mockReview: Review = {
+    id: '1',
+    date: '2024-01-01',
+    user: {
+      email: 'user@user.ru',
+      name: 'John Doe',
+      avatarUrl: 'avatar.jpg',
+      isPro: true
+    },
+    comment: 'Great place!',
+    rating: 5
+  };
+
+  const mockReview2: Review = {
+    id: '2',
+    date: '2024-01-02',
+    user: {
+      email: 'user@user.ru',
+      name: 'Jane Smith',
+      avatarUrl: 'avatar2.jpg',
+      isPro: false
+    },
+    comment: 'Nice location',
+    rating: 4
+  };
+
+  describe('synchronous actions', () => {
+    it('должен очищать все комментарии', () => {
+      const stateWithComments: CommentsState = {
         ...initialState,
-        comments: { '1': mockReviews }
+        comments: {
+          'offer1': [mockReview],
+          'offer2': [mockReview2]
+        }
       };
+
       const state = commentsReducer(stateWithComments, clearComments());
+
       expect(state.comments).toEqual({});
+      expect(state.loading).toBe(false);
+      expect(state.posting).toBe(false);
     });
 
-    it('should handle clearCommentsByOfferId', () => {
-      const stateWithComments = {
+    it('должен очищать комментарии по ID предложения', () => {
+      const stateWithComments: CommentsState = {
         ...initialState,
-        comments: { '1': mockReviews, '2': mockReviews }
+        comments: {
+          'offer1': [mockReview],
+          'offer2': [mockReview2]
+        }
       };
-      const state = commentsReducer(stateWithComments, clearCommentsByOfferId('1'));
-      expect(state.comments).toEqual({ '2': mockReviews });
+
+      const state = commentsReducer(stateWithComments, clearCommentsByOfferId('offer1'));
+
+      expect(state.comments).toEqual({
+        'offer2': [mockReview2]
+      });
+      expect(state.comments['offer1']).toBeUndefined();
     });
 
-    it('should handle clearPostError', () => {
-      const stateWithError = { ...initialState, postError: 'Error' };
+    it('должен очищать ошибку отправки комментария', () => {
+      const stateWithError: CommentsState = {
+        ...initialState,
+        postError: 'Some error'
+      };
+
       const state = commentsReducer(stateWithError, clearPostError());
+
       expect(state.postError).toBeNull();
     });
   });
 
   describe('fetchComments thunk', () => {
-    it('should set loading to true on pending', () => {
-      const action = { type: fetchComments.pending.type };
+    it('должен обрабатывать pending состояние', () => {
+      const action = fetchComments.pending('', 'offer1');
       const state = commentsReducer(initialState, action);
+
       expect(state.loading).toBe(true);
       expect(state.error).toBeNull();
+      expect(state.posting).toBe(false);
     });
 
-    it('should handle fulfilled fetchComments', () => {
-      const action = {
-        type: fetchComments.fulfilled.type,
-        payload: mockReviews,
-        meta: { arg: '1' }
-      };
+    it('должен обрабатывать fulfilled состояние и сохранять комментарии по offerId', () => {
+      const reviews = [mockReview, mockReview2];
+      const action = fetchComments.fulfilled(reviews, '', 'offer1');
       const state = commentsReducer(initialState, action);
 
       expect(state.loading).toBe(false);
-      expect(state.comments['1']).toEqual(mockReviews);
+      expect(state.comments['offer1']).toEqual(reviews);
+      expect(state.comments['offer1']).toHaveLength(2);
     });
 
-    it('should handle rejected fetchComments', () => {
-      const action = {
-        type: fetchComments.rejected.type,
-        error: { message: 'Failed to load' }
-      };
+    it('должен обрабатывать rejected состояние', () => {
+      const error = new Error('Network error');
+      const action = fetchComments.rejected(error, '', 'offer1');
       const state = commentsReducer(initialState, action);
 
       expect(state.loading).toBe(false);
-      expect(state.error).toBe('Failed to load');
+      expect(state.error).toBe('Network error');
+      expect(state.comments['offer1']).toBeUndefined();
+    });
+
+    it('должен использовать дефолтное сообщение об ошибке', () => {
+      const action = fetchComments.rejected(new Error(), '', 'offer1');
+      const state = commentsReducer(initialState, action);
+
+      expect(state.error).toBe('Не удалось загрузить комментарии');
     });
   });
 
   describe('postComment thunk', () => {
-    const newReview: Review = {
-      id: '3',
+    const postData = {
+      offerId: 'offer1',
       comment: 'New comment',
-      rating: 5,
-      date: '2024-01-03',
-      user: { name: 'Bob', avatarUrl: 'avatar3.jpg', isPro: false, email: 'user@mail.ru' }
+      rating: 5
     };
 
-    it('should set posting to true on pending', () => {
-      const action = { type: postComment.pending.type };
+    it('должен обрабатывать pending состояние', () => {
+      const action = postComment.pending('', postData);
       const state = commentsReducer(initialState, action);
+
       expect(state.posting).toBe(true);
       expect(state.postError).toBeNull();
+      expect(state.loading).toBe(false);
     });
 
-    it('should handle fulfilled postComment when no existing comments', () => {
-      const action = {
-        type: postComment.fulfilled.type,
-        payload: newReview,
-        meta: { arg: { offerId: '1', comment: 'New', rating: 5 } }
+    it('должен обрабатывать fulfilled состояние и добавлять новый комментарий в начало списка', () => {
+      const stateWithExistingComments: CommentsState = {
+        ...initialState,
+        comments: {
+          'offer1': [mockReview]
+        }
       };
+
+      const newComment = { ...mockReview2, id: '3' };
+      const action = postComment.fulfilled(newComment, '', postData);
+      const state = commentsReducer(stateWithExistingComments, action);
+
+      expect(state.posting).toBe(false);
+      expect(state.comments['offer1']).toHaveLength(2);
+      expect(state.comments['offer1'][0]).toEqual(newComment);
+      expect(state.comments['offer1'][1]).toEqual(mockReview);
+    });
+
+    it('должен создавать новый массив комментариев если его не существует', () => {
+      const action = postComment.fulfilled(mockReview, '', postData);
       const state = commentsReducer(initialState, action);
 
       expect(state.posting).toBe(false);
-      expect(state.comments['1']).toEqual([newReview]);
+      expect(state.comments['offer1']).toBeDefined();
+      expect(state.comments['offer1']).toHaveLength(1);
+      expect(state.comments['offer1'][0]).toEqual(mockReview);
     });
 
-    it('should handle fulfilled postComment with existing comments', () => {
-      const stateWithComments = {
-        ...initialState,
-        comments: { '1': mockReviews }
-      };
-
-      const action = {
-        type: postComment.fulfilled.type,
-        payload: newReview,
-        meta: { arg: { offerId: '1', comment: 'New', rating: 5 } }
-      };
-
-      const state = commentsReducer(stateWithComments, action);
-
-      expect(state.posting).toBe(false);
-      expect(state.comments['1']).toHaveLength(3);
-      expect(state.comments['1'][0]).toEqual(newReview);
-    });
-
-    it('should handle rejected postComment', () => {
-      const action = {
-        type: postComment.rejected.type,
-        error: { message: 'Failed to post' }
-      };
+    it('должен обрабатывать rejected состояние', () => {
+      const error = new Error('Failed to post');
+      const action = postComment.rejected(error, '', postData);
       const state = commentsReducer(initialState, action);
 
       expect(state.posting).toBe(false);
       expect(state.postError).toBe('Failed to post');
+    });
+
+    it('должен использовать дефолтное сообщение об ошибке при отправке', () => {
+      const action = postComment.rejected(new Error(), '', postData);
+      const state = commentsReducer(initialState, action);
+
+      expect(state.postError).toBe('Не удалось отправить комментарий');
+    });
+  });
+
+  describe('initial state', () => {
+    it('должен возвращать initialState при пустом action', () => {
+      const state = commentsReducer(undefined, { type: '' });
+
+      expect(state).toEqual(initialState);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('не должен модифицировать комментарии других offerId при добавлении нового', () => {
+      const stateWithMultipleOffers: CommentsState = {
+        ...initialState,
+        comments: {
+          'offer1': [mockReview],
+          'offer2': [mockReview2]
+        }
+      };
+
+      const postData = {
+        offerId: 'offer1',
+        comment: 'New comment',
+        rating: 5
+      };
+
+      const newComment = { ...mockReview, id: '3' };
+      const action = postComment.fulfilled(newComment, '', postData);
+      const state = commentsReducer(stateWithMultipleOffers, action);
+
+      expect(state.comments['offer1']).toHaveLength(2);
+      expect(state.comments['offer2']).toEqual([mockReview2]);
+    });
+
+    it('должен сохранять состояние при очистке ошибок других offerId', () => {
+      const stateWithData: CommentsState = {
+        ...initialState,
+        comments: {
+          'offer1': [mockReview],
+          'offer2': [mockReview2]
+        },
+        error: 'Some error',
+        postError: 'Post error'
+      };
+
+      const state = commentsReducer(stateWithData, clearPostError());
+
+      expect(state.postError).toBeNull();
+      expect(state.error).toBe('Some error');
+      expect(state.comments['offer1']).toHaveLength(1);
+      expect(state.comments['offer2']).toHaveLength(1);
     });
   });
 });

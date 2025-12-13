@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Layout } from './components/Layout';
-import { PrivateRoute } from './components/PrivateRoute';
-import { PublicRoute } from './components/PublicRoute';
+import { Layout } from './components/layout';
+import { PrivateRoute } from './components/private-route';
+import { PublicRoute } from './components/public-route';
 import NotFound from './pages/404';
-import { FavoritesPage } from './pages/Favorites';
-import { LoginPage } from './pages/Login';
-import Main from './pages/Main';
-import { OfferPage } from './pages/Offer';
+import { FavoritesPage } from './pages/favorites';
+import { LoginPage } from './pages/login';
+import Main from './pages/main';
+import { OfferPage } from './pages/offer';
 import { useAppDispatch, useAppSelector } from './store/hooks/redux';
 import { checkAuth } from './store/slices/auth-slice';
 

@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AxiosInstance } from 'axios';
 import { AuthInfo, AuthStatus, LoginData } from '../../types/auth';
 
-interface AuthState {
+export interface AuthState {
     authorizationStatus: AuthStatus;
     user: Omit<AuthInfo, 'token'> | null;
     loading: boolean;

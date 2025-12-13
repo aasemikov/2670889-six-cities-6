@@ -4,7 +4,7 @@ import { cities } from '../../mocks/cities';
 import { City, Offer } from '../../types/offer';
 import { toggleFavorite } from './favorites-slice';
 
-interface OffersState {
+export interface OffersState {
   offers: Offer[];
   cities: City[];
   selectedCity: City;
