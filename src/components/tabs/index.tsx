@@ -1,10 +1,10 @@
-import { useState, useCallback, useMemo, memo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { City } from '../../types/offer';
 
 export type Props = {
   cities: City[];
-  onCityChange?: (city: City) => void;
-  initialActiveIndex?: number;
+  selectedCity: City;
+  onCityChange: (city: City) => void;
   className?: string;
 };
 
@@ -44,36 +44,22 @@ TabItem.displayName = 'TabItem';
 
 export const Tabs: React.FC<Props> = memo(({
   cities,
+  selectedCity,
   onCityChange,
-  initialActiveIndex = 0,
   className = ''
 }) => {
-  const [activeIndex, setActiveIndex] = useState(() => Math.max(0, Math.min(initialActiveIndex, cities.length - 1)));
-
-  const activeCity = useMemo(() => cities[activeIndex], [cities, activeIndex]);
-
-  const cityIndexMap = useMemo(() => {
-    const map = new Map<string, number>();
-    cities.forEach((city, index) => {
-      map.set(city.name, index);
-    });
-    return map;
-  }, [cities]);
-
-  const handleTabClickOptimized = useCallback((city: City) => {
-    const newIndex = cityIndexMap.get(city.name);
-    if (newIndex !== undefined && newIndex !== activeIndex) {
-      setActiveIndex(newIndex);
-      onCityChange?.(city);
+  const handleTabClick = useCallback((city: City) => {
+    if (city.name !== selectedCity.name) {
+      onCityChange(city);
     }
-  }, [cityIndexMap, activeIndex, onCityChange]);
+  }, [selectedCity, onCityChange]);
 
   const tabItems = useMemo(() =>
     cities.map((city) => ({
       ...city,
-      isActive: city.name === activeCity?.name
+      isActive: city.name === selectedCity.name
     })),
-  [cities, activeCity]
+  [cities, selectedCity]
   );
 
   return (
@@ -84,12 +70,12 @@ export const Tabs: React.FC<Props> = memo(({
           role="tablist"
           aria-label="City selection"
         >
-          {tabItems.map(({ name, location }) => (
+          {tabItems.map((city) => (
             <TabItem
-              key={name}
-              city={{ name, location }}
-              isActive={name === activeCity?.name}
-              onClick={handleTabClickOptimized}
+              key={city.name}
+              city={city}
+              isActive={city.isActive}
+              onClick={handleTabClick}
             />
           ))}
         </ul>
@@ -112,10 +98,16 @@ export const MemoizedTabs = memo(Tabs, (prevProps, nextProps) => {
     city.location.zoom !== nextProps.cities[index]?.location.zoom
   );
 
+  const selectedCityChanged =
+    prevProps.selectedCity?.name !== nextProps.selectedCity?.name ||
+    prevProps.selectedCity?.location.latitude !== nextProps.selectedCity?.location.latitude ||
+    prevProps.selectedCity?.location.longitude !== nextProps.selectedCity?.location.longitude ||
+    prevProps.selectedCity?.location.zoom !== nextProps.selectedCity?.location.zoom;
+
   return (
     !citiesChanged &&
+    !selectedCityChanged &&
     prevProps.onCityChange === nextProps.onCityChange &&
-    prevProps.initialActiveIndex === nextProps.initialActiveIndex &&
     prevProps.className === nextProps.className
   );
 });

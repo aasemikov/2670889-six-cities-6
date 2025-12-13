@@ -207,7 +207,7 @@ describe('offer details slice', () => {
       const state = offerDetailsReducer(stateWithOffer, action);
 
       expect(state.currentOffer?.isFavorite).toBe(true);
-      expect(state.currentOffer?.id).toBe('2'); 
+      expect(state.currentOffer?.id).toBe('2');
     });
 
     it('не должен делать ничего если currentOffer равен null', () => {
