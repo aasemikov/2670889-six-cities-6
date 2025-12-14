@@ -9,8 +9,6 @@ import offersSlice from './slices/offers-slice';
 
 const api = createAPI();
 
-console.log(api.defaults.baseURL);
-
 export const store = configureStore({
   reducer: {
     offers: offersSlice,
