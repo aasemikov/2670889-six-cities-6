@@ -4,7 +4,7 @@ import { cities } from '../../mocks/cities';
 import { City, Offer } from '../../types/offer';
 import { toggleFavorite } from './favorites-slice';
 
-interface OffersState {
+export interface OffersState {
   offers: Offer[];
   cities: City[];
   selectedCity: City;
@@ -29,6 +29,7 @@ export const fetchOffers = createAsyncThunk<
   void,
   { extra: AxiosInstance }
 >('offers/fetchOffers', async (_, { extra: api }) => {
+  console.log(api.defaults.baseURL);
   const { data } = await api.get<Offer[]>('/offers');
   return data;
 });

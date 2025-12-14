@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AxiosInstance } from 'axios';
 import { Offer } from '../../types/offer';
 
-interface FavoritesState {
+export interface FavoritesState {
   favorites: Offer[];
   loading: boolean;
   error: string | null;
