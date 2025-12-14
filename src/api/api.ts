@@ -31,6 +31,8 @@ export const createAPI = (): AxiosInstance => {
     timeout: API_CONFIG.TIMEOUT,
   });
 
+  console.log(API_CONFIG.BASE_URL);
+
   api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     const token = getToken();
     if (token && config.headers) {
