@@ -9,7 +9,6 @@ import { fetchComments } from '../../store/slices/comment-slice';
 import { fetchNearbyOffers } from '../../store/slices/nearby-slice';
 import { fetchOfferDetails } from '../../store/slices/offer-slice';
 
-// Мокаем подкомпоненты для изоляции теста
 vi.mock('../../components/offer-page-items/gallery', () => ({
   OfferGallery: () => <div>OfferGallery Mock</div>
 }));

@@ -63,6 +63,7 @@ module.exports = {
     'node_modules/**',
     'jest.config.js',
     'jest.config.cjs',
-    'src/setupTests.ts'
+    'src/setupTests.ts',
+    '**/*.stories.*'
   ],
 };

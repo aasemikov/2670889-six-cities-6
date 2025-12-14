@@ -163,7 +163,7 @@ describe('offers slice', () => {
       expect(state.offers).toEqual(mockOffers);
       expect(state.offers).toHaveLength(3);
       expect(state.error).toBeNull();
-      expect(state.selectedCity).toEqual(mockCities[0]); // не изменилось
+      expect(state.selectedCity).toEqual(mockCities[0]);
     });
 
     it('должен обрабатывать fulfilled состояние с пустым массивом', () => {

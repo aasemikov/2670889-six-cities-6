@@ -1,4 +1,4 @@
-type OfferHeaderProps = {
+export type OfferHeaderProps = {
   title: string;
   isPremium: boolean;
   isFavorite: boolean;

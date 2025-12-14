@@ -1,25 +1,41 @@
 import React, { FormEvent, useEffect, useState } from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { cities } from '../../mocks/cities';
 import { useAppDispatch, useAppSelector } from '../../store/hooks/redux';
 import { clearError, login } from '../../store/slices/auth-slice';
+import { setSelectedCity } from '../../store/slices/offers-slice';
+import { City } from '../../types/offer';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [randomCity, setRandomCity] = useState<City>(cities[0]);
 
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { authorizationStatus, loading, error } = useAppSelector((state) => state.auth);
   const location = useLocation();
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
 
-  useEffect(() => () => {
-    dispatch(clearError());
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * cities.length);
+    setRandomCity(cities[randomIndex]);
+
+    return () => {
+      dispatch(clearError());
+    };
   }, [dispatch]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     dispatch(login({ email, password }));
+  };
+
+  const handleCityClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    dispatch(setSelectedCity(randomCity));
+    navigate('/');
   };
 
   if (authorizationStatus === 'AUTH') {
@@ -28,24 +44,6 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="page page--gray page--login">
-      <header className="header">
-        <div className="container">
-          <div className="header__wrapper">
-            <div className="header__left">
-              <Link className="header__logo-link" to="/">
-                <img
-                  className="header__logo"
-                  src="img/logo.svg"
-                  alt="6 cities logo"
-                  width="81"
-                  height="41"
-                />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <main className="page__main page__main--login">
         <div className="page__login-container container">
           <section className="login">
@@ -93,9 +91,13 @@ export const LoginPage: React.FC = () => {
           </section>
           <section className="locations locations--login locations--current">
             <div className="locations__item">
-              <Link className="locations__item-link" to="/">
-                <span>Amsterdam</span>
-              </Link>
+              <a
+                className="locations__item-link"
+                href="/"
+                onClick={handleCityClick}
+              >
+                <span>{randomCity.name}</span>
+              </a>
             </div>
           </section>
         </div>

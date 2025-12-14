@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks/redux';
 import { toggleFavorite } from '../../store/slices/favorites-slice';
@@ -14,7 +14,7 @@ type OfferCardProps = {
 const getRatingWidth = (rating: number): string =>
   `${Math.round((rating / 5) * 100)}%`;
 
-export const ArticleItem: React.FC<OfferCardProps> = memo(({
+export const ArticleItem: React.FC<OfferCardProps> = ({
   offer,
   onCardHover,
   className = '',
@@ -81,7 +81,6 @@ export const ArticleItem: React.FC<OfferCardProps> = memo(({
       aria-label={`Offer: ${title}`}
       data-testid={testId || `offer-card-${id}`}
     >
-      {/* Премиум метка */}
       {isPremium && (
         <div className="place-card__mark">
           <span>Premium</span>
@@ -171,15 +170,6 @@ export const ArticleItem: React.FC<OfferCardProps> = memo(({
       </div>
     </article>
   );
-}, (prevProps, nextProps) => (
-  prevProps.offer.id === nextProps.offer.id &&
-  prevProps.offer.isFavorite === nextProps.offer.isFavorite &&
-  prevProps.offer.previewImage === nextProps.offer.previewImage &&
-  prevProps.offer.title === nextProps.offer.title &&
-  prevProps.offer.price === nextProps.offer.price &&
-  prevProps.offer.rating === nextProps.offer.rating &&
-  prevProps.onCardHover === nextProps.onCardHover &&
-  prevProps.className === nextProps.className
-));
+};
 
 ArticleItem.displayName = 'ArticleItem';

@@ -77,12 +77,11 @@ describe('offer details slice', () => {
         currentOffer: { ...mockShortOffer, isFavorite: false }
       };
 
-      // Переключаем isFavorite для offer с id '1'
       const state = offerDetailsReducer(stateWithOffer, toggleFavoriteOffer('1'));
 
       expect(state.currentOffer?.isFavorite).toBe(true);
       expect(state.currentOffer?.id).toBe('1');
-      expect(state.currentOffer?.title).toBe('Test Short Offer'); // остальные поля не изменились
+      expect(state.currentOffer?.title).toBe('Test Short Offer');
     });
 
     it('не должен переключать isFavorite если ID не совпадает', () => {
@@ -91,10 +90,9 @@ describe('offer details slice', () => {
         currentOffer: { ...mockShortOffer, isFavorite: false }
       };
 
-      // Пытаемся переключить для другого ID
       const state = offerDetailsReducer(stateWithOffer, toggleFavoriteOffer('999'));
 
-      expect(state.currentOffer?.isFavorite).toBe(false); // не изменилось
+      expect(state.currentOffer?.isFavorite).toBe(false);
     });
 
     it('не должен делать ничего если currentOffer равен null', () => {
@@ -208,8 +206,8 @@ describe('offer details slice', () => {
       const action = toggleFavorite.fulfilled(updatedOffer, '', { offerId: '1', status: false });
       const state = offerDetailsReducer(stateWithOffer, action);
 
-      expect(state.currentOffer?.isFavorite).toBe(true); // не изменилось
-      expect(state.currentOffer?.id).toBe('2'); // осталось то же предложение
+      expect(state.currentOffer?.isFavorite).toBe(true);
+      expect(state.currentOffer?.id).toBe('2');
     });
 
     it('не должен делать ничего если currentOffer равен null', () => {
@@ -234,21 +232,17 @@ describe('offer details slice', () => {
     it('должен корректно обрабатывать последовательность действий', () => {
       let state = initialState;
 
-      // Загружаем предложение
       state = offerDetailsReducer(state,
         fetchOfferDetails.fulfilled(mockDetailedOffer, '', '2')
       );
       expect(state.currentOffer?.isFavorite).toBe(true);
 
-      // Переключаем локально
       state = offerDetailsReducer(state, toggleFavoriteOffer('2'));
       expect(state.currentOffer?.isFavorite).toBe(false);
 
-      // Очищаем
       state = offerDetailsReducer(state, clearOfferDetails());
       expect(state.currentOffer).toBeNull();
 
-      // Загружаем другое предложение
       state = offerDetailsReducer(state,
         fetchOfferDetails.fulfilled(mockShortOffer, '', '1')
       );

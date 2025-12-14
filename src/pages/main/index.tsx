@@ -105,7 +105,11 @@ const Main: React.FC = () => {
   return (
     <main className="page__main page__main--index">
       <h1 className="visually-hidden">Cities</h1>
-      <Tabs cities={cities} onCityChange={handleCityChange} />
+      <Tabs
+        cities={cities}
+        selectedCity={selectedCity}
+        onCityChange={handleCityChange}
+      />
       <div className="cities">
         {filteredOffers.length === 0 ? (
           <MainEmpty />
