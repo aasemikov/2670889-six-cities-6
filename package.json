@@ -5,8 +5,8 @@
   "scripts": {
     "start": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint src --ext ts,tsx",
-    "lint:fix": "eslint src --ext ts,tsx --fix",
+    "lint": "tsc --noEmit && eslint src --ext ts,tsx",
+    "lint:fix": "tsc —noEmit && eslint src --ext ts,tsx --fix",
     "preview": "vite preview",
     "test:vite": "vitest --passWithNoTests",
     "test": "vitest",
