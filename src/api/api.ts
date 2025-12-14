@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 const API_CONFIG = {
-  BASE_URL: 'https://14.design.htmlacademy.pro/six-cities',
+  SERVER_BASE_URL: 'https://14.design.htmlacademy.pro/six-cities',
   TIMEOUT: 5000,
   TOKEN_KEY: 'six-cities-token',
   TOKEN_HEADER: 'X-Token'
@@ -26,17 +26,10 @@ export const createAPI = (): AxiosInstance => {
     return apiInstance;
   }
 
-  const baseURL = API_CONFIG.BASE_URL;
-
-  console.log(API_CONFIG);
-  console.log(baseURL)
-
   const api = axios.create({
-    baseURL: baseURL,
+    baseURL: API_CONFIG.SERVER_BASE_URL,
     timeout: API_CONFIG.TIMEOUT,
   });
-
-  console.log(api.defaults.baseURL);
 
   api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     const token = getToken();
