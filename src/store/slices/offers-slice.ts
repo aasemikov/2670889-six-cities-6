@@ -29,7 +29,6 @@ export const fetchOffers = createAsyncThunk<
   void,
   { extra: AxiosInstance }
 >('offers/fetchOffers', async (_, { extra: api }) => {
-  console.log(api.defaults.baseURL);
   const { data } = await api.get<Offer[]>('/offers');
   return data;
 });

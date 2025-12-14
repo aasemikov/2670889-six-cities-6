@@ -26,12 +26,17 @@ export const createAPI = (): AxiosInstance => {
     return apiInstance;
   }
 
+  const baseURL = API_CONFIG.BASE_URL;
+
+  console.log(API_CONFIG);
+  console.log(baseURL)
+
   const api = axios.create({
-    baseURL: API_CONFIG.BASE_URL,
+    baseURL: baseURL,
     timeout: API_CONFIG.TIMEOUT,
   });
 
-  console.log(API_CONFIG.BASE_URL);
+  console.log(api.defaults.baseURL);
 
   api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     const token = getToken();
